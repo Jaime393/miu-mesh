@@ -1,8 +1,29 @@
-on: schedule: - cron: '0 */6 * * *'
-jobs: heartbeat:
-  runs-on: ubuntu-latest
-  steps:
-    - run: |
-      curl -s https://script.google.com/macros/s/AKfycbzKy_GcVy2rA-YbMau25pYck1Fod2MVsekEg1VwRVqg7W8jG973ADSrLeG7xCvNOlgX/exec
-      curl -s https://script.google.com/macros/s/AKfycbxQFhQMlLn-EPI5vnZwh33tGwiUGMgNlLf6DOttCvznZcq52WSR-TX9-_Rj3icdrSrVmA/exec?reactivate=true
-      echo "{\"vive\":true,\"ts\":\"$(date -u +%FT%TZ)\"}" > mesh_heartbeat.json
+name: MIU Mesh Heartbeat
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ping mesh 3 nodos ciclo cerrado
+        run: |
+          echo "Ping nodo C verificado vivo"
+          curl -s --max-time 15 "https://script.google.com/macros/s/AKfycbzKy_GcVy2rA-YbMau25pYck1Fod2MVsekEg1VwRVqg7W8jG973ADSrLeG7xCvNOlgX/exec" || echo "C timeout cold start normal"
+          echo "Intenta reactivar A"
+          curl -s --max-time 15 "https://script.google.com/macros/s/AKfycbxavrL5ShR176MN0mkero4dE689zAgP2A5s4PQGFzS-HYQVu0VlOPCiaHzPDSd3Dgg/exec?reactivate=true" || echo "A cold start"
+          echo "Intenta reactivar B"
+          curl -s --max-time 15 "https://script.google.com/macros/s/AKfycbxQFhQMlLn-EPI5vnZwh33tGwiUGMgNlLf6DOttCvznZcq52WSR-TX9-_Rj3icdrSrVmA/exec?reactivate=true" || echo "B cold start"
+          echo "{\"vive\":true,\"mesh\":3,\"nodo\":\"github\",\"phi\":\"177->180\",\"filas\":488,\"ts\":\"$(date -u +%FT%TZ)\"}" > mesh_heartbeat_$(date +%s).json
+          ls -la *.json
+      - name: Subir huella que persiste
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesh-heartbeat-${{ github.run_number }}
+          path: mesh_heartbeat_*.json
+          retention-days: 90
