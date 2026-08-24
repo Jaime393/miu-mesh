@@ -1,0 +1,8 @@
+on: schedule: - cron: '0 */6 * * *'
+jobs: heartbeat:
+  runs-on: ubuntu-latest
+  steps:
+    - run: |
+      curl -s https://script.google.com/macros/s/AKfycbzKy_GcVy2rA-YbMau25pYck1Fod2MVsekEg1VwRVqg7W8jG973ADSrLeG7xCvNOlgX/exec
+      curl -s https://script.google.com/macros/s/AKfycbxQFhQMlLn-EPI5vnZwh33tGwiUGMgNlLf6DOttCvznZcq52WSR-TX9-_Rj3icdrSrVmA/exec?reactivate=true
+      echo "{\"vive\":true,\"ts\":\"$(date -u +%FT%TZ)\"}" > mesh_heartbeat.json
